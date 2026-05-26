@@ -107,7 +107,7 @@ const styles = {
   infoGroup: { display: 'flex', flexDirection: 'column', gap: '0.35rem' },
   infoLabel: { fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: '600', letterSpacing: '0.05em' },
   infoValue: { fontSize: '1rem', color: '#e2e8f0', wordBreak: 'break-all' },
-  statusValue: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', color: '#34d399', fontWeight: '500' },
+  statusValue: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', color: '#34d399', fontWeight: '500' },
   statusDot: { width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' },
   infoText: { textAlign: 'center', color: '#94a3b8', padding: '1rem 0' },
   errorBox: { padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#f87171', borderRadius: '8px', textAlign: 'center' }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
+import UserModal from '../components/UserModal';
 
 const UsersTable = () => {
   const { logout, user: currentUser } = useAuth();
@@ -9,10 +10,25 @@ const UsersTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Estados para el modal de creación/edición de usuarios
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleCreate = () => {
+    setSelectedUser(null); // Modo creación
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (userToEdit) => {
+    setSelectedUser(userToEdit); // Modo edición
+    setIsModalOpen(true);
+  };
+
   // 1. Cargar usuarios desde el backend al montar el componente
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await API.get('/users');
       setUsers(response.data);
     } catch (err) {
@@ -28,11 +44,14 @@ const UsersTable = () => {
 
   // 2. Función para alternar el estado Activo/Inactivo de un usuario
   const toggleStatus = async (id, currentStatus) => {
+    if (id === currentUser.id) {
+      alert('No puedes desactivar tu propia cuenta de administrador de forma remota.');
+      return;
+    }
     try {
       await API.put(`/users/${id}`, { isActive: !currentStatus });
-      // Actualizar el estado local para reflejar el cambio de inmediato
+      // Sincronizar el estado local ágilmente
       setUsers(users.map(u => u.id === id ? { ...u, isActive: !currentStatus } : u));
-      fetchUsers(); // Sincronizar con base de datos
     } catch (err) {
       alert('Error al actualizar el estado del usuario.');
     }
@@ -58,8 +77,8 @@ const UsersTable = () => {
 
   // 4. Filtrar la lista local según lo que escriba el usuario en la barra de búsqueda
   const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
+    u.name?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -87,8 +106,8 @@ const UsersTable = () => {
             onChange={(e) => setSearch(e.target.value)}
             style={styles.searchInput}
           />
-          {/* Botón para registrar un nuevo usuario (Próximo paso) */}
-          <button style={styles.createButton} onClick={() => alert('Próximamente: Formulario de Creación')}>
+          {/* Botón para registrar un nuevo usuario */}
+          <button style={styles.createButton} onClick={handleCreate}>
             + Nuevo Usuario
           </button>
         </div>
@@ -108,6 +127,7 @@ const UsersTable = () => {
                   <th style={styles.th}>Nombre</th>
                   <th style={styles.th}>Correo Electrónico</th>
                   <th style={styles.th}>Rol asignado</th>
+                  <th style={styles.th}>Estado</th>
                   <th style={styles.th}>Acciones de control</th>
                 </tr>
               </thead>
@@ -128,19 +148,40 @@ const UsersTable = () => {
                       </span>
                     </td>
                     <td style={styles.td}>
+                      {/* Switch interactivo de estado de cuenta */}
+                      <button
+                        onClick={() => toggleStatus(userItem.id, userItem.isActive ?? true)}
+                        disabled={userItem.id === currentUser.id}
+                        style={{
+                          ...styles.statusButton,
+                          backgroundColor: (userItem.isActive ?? true) ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                          color: (userItem.isActive ?? true) ? '#34d399' : '#f87171',
+                          cursor: userItem.id === currentUser.id ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        <span style={{
+                          ...styles.statusDot,
+                          backgroundColor: (userItem.isActive ?? true) ? '#10b981' : '#ef4444'
+                        }}></span>
+                        {(userItem.isActive ?? true) ? 'Activo' : 'Inactivo'}
+                      </button>
+                    </td>
+                    <td style={styles.td}>
                       <div style={styles.btnGroup}>
                         <button 
-                          onClick={() => alert(`Editar ID: ${userItem.id}`)} 
+                          onClick={() => handleEdit(userItem)} 
                           style={styles.actionBtnEdit}
                         >
                           Editar
                         </button>
-                        <button 
-                          onClick={() => handleDelete(userItem.id, userItem.name)} 
-                          style={styles.actionBtnDelete}
-                        >
-                          Eliminar
-                        </button>
+                        {userItem.id !== currentUser.id && (
+                          <button 
+                            onClick={() => handleDelete(userItem.id, userItem.name)} 
+                            style={styles.actionBtnDelete}
+                          >
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -150,11 +191,19 @@ const UsersTable = () => {
           )}
         </div>
       </main>
+
+      {/* Modal posicionado de manera segura en la raíz del componente */}
+      <UserModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchUsers} 
+        userToEdit={selectedUser} 
+      />
     </div>
   );
 };
 
-// Estilos modulares integrados para un layout tipo Dashboard Premium
+// Estilos modulares consolidados
 const styles = {
   dashboardContainer: { minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'system-ui, sans-serif' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', backgroundColor: '#1e293b', borderBottom: '1px solid #374151' },
@@ -176,6 +225,8 @@ const styles = {
   td: { padding: '1rem 1.5rem', color: '#e2e8f0', verticalAlign: 'middle' },
   nameCell: { fontWeight: '600', color: '#ffffff' },
   roleBadge: { padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', textTransform: 'uppercase' },
+  statusButton: { display: 'flex', alignItems: 'center', gap: '0.4rem', border: 'none', padding: '0.35rem 0.7rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '500', transition: 'all 0.15s' },
+  statusDot: { width: '6px', height: '6px', borderRadius: '50%' },
   btnGroup: { display: 'flex', gap: '0.5rem' },
   actionBtnEdit: { backgroundColor: '#3b82f6', color: '#fff', border: 'none', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '500', cursor: 'pointer' },
   actionBtnDelete: { backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '500', cursor: 'pointer' },
