@@ -6,20 +6,9 @@ import { PrivateRoute, RoleRoute } from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-// Componentes temporales para las vistas protegidas (los desarrollaremos a continuación)
-const TempUsersTable = () => (
-  <div style={{ padding: '2rem', backgroundColor: '#0f172a', minHeight: '100vh', color: '#fff' }}>
-    <h2>Panel de Administración (Vista de Admin)</h2>
-    <p>Pronto listaremos la tabla de usuarios aquí.</p>
-  </div>
-);
-
-const TempProfile = () => (
-  <div style={{ padding: '2rem', backgroundColor: '#0f172a', minHeight: '100vh', color: '#fff' }}>
-    <h2>Mi Perfil (Vista de Usuario Común)</h2>
-    <p>Pronto mostraremos los datos del perfil aquí.</p>
-  </div>
-);
+// Importar pantallas protegidas reales
+import UsersTable from './pages/UsersTable';
+import Profile from './pages/Profile'; // La crearemos a continuación
 
 function App() {
   return (
@@ -36,18 +25,20 @@ function App() {
           {/* RUTAS PROTEGIDAS (Cualquier usuario con JWT) */}
           {/* ========================================== */}
           <Route element={<PrivateRoute />}>
-            {/* Ruta para usuarios estándar ('user') */}
-            <Route path="/profile" element={<TempProfile />} />
+            
+            {/* Ruta para el perfil del usuario común o administrador */}
+            <Route path="/profile" element={<Profile />} />
             
             {/* ========================================== */}
             {/* RUTAS EXCLUSIVAS DE ADMINISTRADOR          */}
             {/* ========================================== */}
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
-              <Route path="/users" element={<TempUsersTable />} />
+              <Route path="/users" element={<UsersTable />} />
             </Route>
+            
           </Route>
 
-          {/* Redirección por defecto: si no coincide con nada, va al login */}
+          {/* Redirección por defecto: si la URL no existe, vuelve al login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
