@@ -10,10 +10,10 @@ namespace AuthApi.Application
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        // Verifica si la contraseña en texto plano coincide con el Hash guardado
+        // CORRECCIÓN: El método oficial de la librería es .Verify()
         public static bool VerifyPassword(string password, string hashedPassword)
         {
-            return BCrypt.Net.BCrypt.VerifyPassword(password, hashedPassword);
+            return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
         }
     }
 }
