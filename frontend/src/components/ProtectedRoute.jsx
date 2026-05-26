@@ -12,7 +12,7 @@ export const RoleRoute = ({ allowedRoles }) => {
   const { user } = useAuth();
   
   if (!user || !allowedRoles.includes(user.role)) {
-    // Si es un usuario común intentando ver la lista de admin, lo manda a su perfil [cite: 14, 93]
+    // Si es un usuario común intentando ver la lista de admin, lo manda a su perfil
     return <Navigate to="/profile" replace />; 
   }
 

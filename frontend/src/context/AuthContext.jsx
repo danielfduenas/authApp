@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, [token]);
 
-  // Función para manejar el inicio de sesión exitoso [cite: 7, 29]
+  // Función para manejar el inicio de sesión exitoso
   const login = async (email, password) => {
     const response = await API.post('/auth/login', { email, password }); // Contrato sugerido 
     const { accessToken, user: userData } = response.data;
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  // Función para cerrar sesión [cite: 8]
+  // Función para cerrar sesión
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
